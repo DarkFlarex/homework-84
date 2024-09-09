@@ -1,6 +1,8 @@
 import mongoose, {Types} from 'mongoose';
 import User from "./User";
 
+const Statuses = ['new', 'in_progress', 'complete'];
+
 const Schema = mongoose.Schema;
 
 const TaskSchema = new mongoose.Schema({
@@ -25,6 +27,17 @@ const TaskSchema = new mongoose.Schema({
         type: String,
         required: true,
     }
+});
+
+TaskSchema.methods.checkStatus = function (status: string): boolean {
+    return Statuses.includes(status);
+};
+
+TaskSchema.pre('save', async function (next) {
+    if (!Statuses.includes(this.status)) {
+        return next(Error('Invalid status'));
+    }
+    next();
 });
 
 const Task = mongoose.model('Task', TaskSchema);

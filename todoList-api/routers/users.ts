@@ -1,7 +1,6 @@
 import express from 'express';
 import User from '../models/User';
 import mongoose from 'mongoose';
-import auth, { RequestWithUser } from '../middleware/auth';
 
 const usersRouter = express.Router();
 
