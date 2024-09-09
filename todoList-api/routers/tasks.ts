@@ -11,7 +11,7 @@ tasksRouter.get("/", auth, async (req:RequestWithUser, res, next) => {
         if (!req.user) {
             return res.status(401).send({error: 'User not found'});
         }
-        const tasks = await Task.find();
+        const tasks = await Task.find({user: req.body.user });
         return res.send(tasks);
     } catch (error) {
         return next(error);
@@ -59,6 +59,30 @@ tasksRouter.delete('/:id', auth, async (req:RequestWithUser, res, next) => {
         }
 
         await Task.deleteOne({_id: req.params.id});
+
+        return res.send(task);
+    } catch (error) {
+        next(error);
+    }
+});
+
+tasksRouter.patch('/:id', auth, async (req:RequestWithUser, res, next) => {
+    try {
+        if (!req.user) {
+            return res.status(401).send({error: 'User not found'});
+        }
+
+        const task = await Task.findById(req.params.id);
+
+        if (!task) {
+            return res.status(404).send({ error: 'Task not found' });
+        }
+
+        if (task.user.toString() !== req.user._id.toString()) {
+            return res.status(403).send({ error: 'Forbidden: The user does not have enough access rights to update' });
+        }
+
+        await Task.updateOne({_id: req.params.id},{$set:req.body});
 
         return res.send(task);
     } catch (error) {
