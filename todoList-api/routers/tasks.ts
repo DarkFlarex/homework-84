@@ -11,13 +11,12 @@ tasksRouter.get("/", auth, async (req:RequestWithUser, res, next) => {
         if (!req.user) {
             return res.status(401).send({error: 'User not found'});
         }
-        const tasks = await Task.find({ user: req.body.user });
+        const tasks = await Task.find();
         return res.send(tasks);
     } catch (error) {
         return next(error);
     }
 });
-
 
 tasksRouter.post('/', auth, async (req: RequestWithUser, res, next) => {
     try{
@@ -40,6 +39,30 @@ tasksRouter.post('/', auth, async (req: RequestWithUser, res, next) => {
         }
 
         return next(error);
+    }
+});
+
+tasksRouter.delete('/:id', auth, async (req:RequestWithUser, res, next) => {
+    try {
+        if (!req.user) {
+            return res.status(401).send({error: 'User not found'});
+        }
+
+        const task = await Task.findById(req.params.id);
+
+        if (!task) {
+            return res.status(404).send({ error: 'Task not found' });
+        }
+
+        if (task.user.toString() !== req.user._id.toString()) {
+            return res.status(403).send({ error: 'Forbidden: The user does not have enough access rights to delete' });
+        }
+
+        await Task.deleteOne({_id: req.params.id});
+
+        return res.send(task);
+    } catch (error) {
+        next(error);
     }
 });
 
