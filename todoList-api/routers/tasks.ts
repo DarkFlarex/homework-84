@@ -6,6 +6,19 @@ import mongoose from "mongoose";
 
 const tasksRouter = express.Router();
 
+tasksRouter.get("/", auth, async (req:RequestWithUser, res, next) => {
+    try {
+        if (!req.user) {
+            return res.status(401).send({error: 'User not found'});
+        }
+        const tasks = await Task.find({ user: req.body.user });
+        return res.send(tasks);
+    } catch (error) {
+        return next(error);
+    }
+});
+
+
 tasksRouter.post('/', auth, async (req: RequestWithUser, res, next) => {
     try{
         if (!req.user) {
